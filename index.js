@@ -4,6 +4,8 @@ const authRoutes = require('./routes/auth');
 const updatePasswordRouter = require('./routes/updatePassword'); // Import router update-password
 const updateLokasi = require('./routes/update_lokasi');
 const getInfo = require('./routes/get_info');
+const adduser = require('./routes/addUser');
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,6 +16,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api', updatePasswordRouter); 
 app.use('/api', updateLokasi);
 app.use('/api', getInfo);
+app.use('/api', adduser);
 
 
 // Root route
