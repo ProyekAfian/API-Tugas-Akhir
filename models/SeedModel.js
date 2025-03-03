@@ -1,43 +1,64 @@
+const bcrypt = require('bcryptjs');
 const db = require('../db');
-const defaultPassword = 'Password123';
 
-const SeedModel = {
-    seedRandomDosenAndMahasiswa: (callback) => {
-        const queries = `
-            INSERT INTO Dosen (NIDN, nama_dosen, jenis_kelamin, no_hp, informasi)
-            SELECT CONCAT('NIDN', LPAD(FLOOR(RAND() * 10000), 4, '0')),
-                   CONCAT('Dosen ', FLOOR(RAND() * 100)),
-                   IF(RAND() > 0.5, 'L', 'P'),
-                   CONCAT('08', FLOOR(RAND() * 1000000000)),
-                   'Informasi Dosen'
-            FROM DUAL
-            LIMIT 10;
-
-            INSERT INTO Mahasiswa (NIM, nama_dosen, user_name, jenis_kelamin)
-            SELECT CONCAT('NIM', LPAD(FLOOR(RAND() * 10000), 4, '0')),
-                   CONCAT('Mahasiswa ', FLOOR(RAND() * 100)),
-                   CONCAT('user_', FLOOR(RAND() * 1000)),
-                   IF(RAND() > 0.5, 'L', 'P')
-            FROM DUAL
-            LIMIT 10;
+// Fungsi untuk generate user dari data mahasiswa dan dosen
+async function generateUsers() {
+    try {
+        const mahasiswaQuery = `
+            SELECT m.NIM AS identifier, m.nama_mahasiswa AS name, 'mahasiswa' AS role
+            FROM Mahasiswa m
+            LEFT JOIN User u ON m.NIM = u.identifier
+            WHERE u.identifier IS NULL
         `;
-        db.query(queries, callback);
-    },
 
-    seedUsersFromDosenAndMahasiswa: (callback) => {
-        const queries = `
-            INSERT INTO User (identifier, password, user_name, role, password_updated)
-            SELECT NIDN, '${defaultPassword}', nama_dosen, 'dosen', false
-            FROM Dosen
-            WHERE NIDN NOT IN (SELECT identifier FROM User);
-
-            INSERT INTO User (identifier, password, user_name, role, password_updated)
-            SELECT NIM, '${defaultPassword}', nama_dosen, 'mhs', false
-            FROM Mahasiswa
-            WHERE NIM NOT IN (SELECT identifier FROM User);
+        const dosenQuery = `
+            SELECT d.NIDN AS identifier, d.nama_dosen AS name, 'dosen' AS role
+            FROM Dosen d
+            LEFT JOIN User u ON d.NIDN = u.identifier
+            WHERE u.identifier IS NULL
         `;
-        db.query(queries, callback);
+
+        // Mengambil data mahasiswa dan dosen yang belum ada di tabel User
+        const mahasiswaData = await db.query(mahasiswaQuery);
+        const dosenData = await db.query(dosenQuery);
+
+        const usersToInsert = [...mahasiswaData, ...dosenData];
+
+        if (usersToInsert.length === 0) {
+            return {
+                status: true,
+                message: 'All users are already in the database.',
+            };
+        }
+
+        const hashedPassword = await bcrypt.hash('Password123', 10);
+
+        // Query untuk memasukkan data ke tabel User dengan kolom username baru
+        const insertQuery = `
+            INSERT INTO User (identifier, user_name, password, role, password_updated)
+            VALUES ?
+        `;
+
+        // Membuat nilai-nilai untuk diinsert, termasuk username
+        const values = usersToInsert.map(user => [
+            user.identifier,
+            user.name.toLowerCase().replace(/\s/g, ''), // Membuat username dari name
+            hashedPassword,
+            user.role,
+            false,
+        ]);
+
+        await db.query(insertQuery, [values]);
+
+        return {
+            status: true,
+            message: 'Users successfully generated and added to the database.',
+            generated_users: usersToInsert,
+        };
+    } catch (error) {
+        console.error(error);
+        throw new Error('An error occurred while generating users.');
     }
-};
+}
 
-module.exports = SeedModel;
+module.exports = { generateUsers };

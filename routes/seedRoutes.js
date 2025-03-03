@@ -1,21 +1,19 @@
 const express = require('express');
+const { generateUsers } = require('../models/SeedModel');
+
 const router = express.Router();
-const SeedModel = require('../models/SeedModel');
 
-// Seed Random Dosen and Mahasiswa Data
-router.post('/seed-random-data', (req, res) => {
-    SeedModel.seedRandomDosenAndMahasiswa((err, results) => {
-        if (err) return res.status(500).json({ status: false, message: 'Database error' });
-        res.json({ status: true, message: 'Random data seeded successfully' });
-    });
-});
-
-// Seed Users from Dosen and Mahasiswa
-router.post('/seed-users', (req, res) => {
-    SeedModel.seedUsersFromDosenAndMahasiswa((err, results) => {
-        if (err) return res.status(500).json({ status: false, message: 'Database error' });
-        res.json({ status: true, message: 'Users seeded successfully' });
-    });
+// Endpoint untuk generate user dari data mahasiswa dan dosen
+router.post('/generate-users', async (req, res) => {
+    try {
+        const result = await generateUsers();
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: error.message,
+        });
+    }
 });
 
 module.exports = router;

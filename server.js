@@ -5,6 +5,7 @@ const socketIo = require('socket.io');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const morgan = require('morgan');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,6 +14,7 @@ const io = socketIo(server);
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
+app.use(morgan('dev'));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Routes
