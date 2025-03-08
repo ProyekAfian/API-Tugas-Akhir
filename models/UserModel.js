@@ -31,7 +31,7 @@ const UserModel = {
     updatePassword: async (user_id, newPassword, callback) => {
         try {
             const hashedPassword = await bcrypt.hash(newPassword, 10);
-            const query = 'UPDATE User SET password = ?, password_updated = ? WHERE id = ?';
+            const query = 'UPDATE User SET password = ?, password_updated = ? WHERE user_id = ?';
             db.query(query, [hashedPassword, true, user_id], callback);
         } catch (error) {
             callback(error, null);
