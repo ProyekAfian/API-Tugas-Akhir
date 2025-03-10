@@ -20,8 +20,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 // Routes
 const userRoutes = require('./routes/userRoutes');
 const seedRoutes = require('./routes/seedRoutes');
+const dosenUpdateRoutes = require('./routes/DosenRoutes');
 app.use('/api', userRoutes);
 app.use('/api/seed', seedRoutes);
+app.use('/api/dosen', dosenUpdateRoutes);
 
 // Socket.IO real-time connection
 io.on('connection', (socket) => {

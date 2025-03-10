@@ -14,10 +14,12 @@ router.post('/login', (req, res) => {
                 status: true,
                 message: 'Login successful',
                 data: {
-                    id: user.id,
+                    id: user.user_id,
+                    identifier: user.identifier,
                     username: user.username,
                     role: user.role,
                     password_updated: user.password_updated,
+                    foto_profil: user.foto_profil,
                 }
             });
         } else {

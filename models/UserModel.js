@@ -36,7 +36,23 @@ const UserModel = {
         } catch (error) {
             callback(error, null);
         }
+    },
+
+    // Fungsi untuk memperbarui informasi pengguna
+    updateInformation: async (user_id, name, username, callback) => {
+        const query = 'UPDATE User SET name = ?, username = ? WHERE id = ?';
+        db.query(query, [name, username, user_id], callback);
+    },
+
+    // Fungsi untuk memperbarui nomor NIDN dosen
+    updateNIDN: async (user_id, newNIDN, callback) => {
+        const query = 'UPDATE User SET identifier = ? WHERE id = ? AND role = "dosen"';
+        db.query(query, [newNIDN, user_id], callback);
     }
+
+
+
+
 };
 
 module.exports = UserModel;
